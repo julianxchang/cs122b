@@ -17,7 +17,7 @@ public class MovieListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // Change this to your own mysql username and password
         String loginUser = "root";
-        String loginPasswd = "aaron1105";
+        String loginPasswd = "tsang123";
         String loginUrl = "jdbc:mysql://localhost:3306/moviedb";
 
         // Set response mime type
@@ -81,19 +81,26 @@ public class MovieListServlet extends HttpServlet {
                     genres += genresResultSet.getString("name");
                     genres += ", ";
                 }
+                genres = genres.substring(0, genres.length() - 2);
 
                 // get first three stars
-                query = "SELECT name " +
+                query = "SELECT s.id, name " +
                         "FROM movies m, stars_in_movies sim, stars s " +
                         "WHERE m.title = '" + title + "' AND m.id = sim.movieID AND sim.starID = s.id " +
                         "LIMIT 3";
 
                 starsResultSet = starsgenresStatement.executeQuery(query);
+
                 String stars = "";
                 while(starsResultSet.next()) {
-                    stars += starsResultSet.getString("name");
-                    stars += ", ";
+                    String starID = starsResultSet.getString("id");
+                    String name = starsResultSet.getString("name");
+
+                    String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + starID;
+                    stars += "<a href = " + link + ">" + name + "</a>" + ", ";
                 }
+
+                stars = stars.substring(0, stars.length() - 2);
 
                 out.println("<tr>");
                 out.println("<td>" + title + "</td>");
