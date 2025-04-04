@@ -46,8 +46,24 @@ public class MovieListServlet extends HttpServlet {
             ResultSet resultSet = statement.executeQuery(query);
             ResultSet starsResultSet;
             ResultSet genresResultSet;
+
+            out.print("<head>");
+            out.print("<style> " +
+                    "   table {" +
+                    "       width: 100%;" +
+                    "       height: 100hv" +
+                    "       border-collapse: collapse;" +
+                    "   }" +
+                    "   tr:nth-child(even) {\n" +
+                    "       background-color: #D6EEEE;\n" +
+                    "   }" +
+                    "   tr {\n" +
+                    "       border-bottom: 1px solid #ddd;\n" +
+                    "   }" +
+                    "</style>");
+            out.print("</head>");
             out.println("<body>");
-            out.println("<h1>Movie List</h1>");
+            out.println("<h1>Top 20 Movies</h1>");
 
             out.println("<table border>");
 
