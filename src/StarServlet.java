@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import io.github.cdimascio.dotenv.Dotenv;
 
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet("/stars")
@@ -16,8 +17,10 @@ public class StarServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Dotenv dotenv = Dotenv.load();
+
         String login = "root";
-        String password = "tsang123";
+        String password = dotenv.get("PASSWORD");
         String url = "jdbc:mysql://localhost:3306/moviedb";
 
         response.setContentType("text/html");

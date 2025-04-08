@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import io.github.cdimascio.dotenv.Dotenv;
 
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet("/movie-list")
@@ -15,9 +16,10 @@ public class MovieListServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // Change this to your own mysql username and password
+        Dotenv dotenv = Dotenv.load();
+
         String loginUser = "root";
-        String loginPasswd = "tsang123";
+        String loginPasswd = dotenv.get("PASSWORD");
         String loginUrl = "jdbc:mysql://localhost:3306/moviedb";
 
         // Set response mime type
