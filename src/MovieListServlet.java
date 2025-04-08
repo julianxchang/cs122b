@@ -114,7 +114,7 @@ public class MovieListServlet extends HttpServlet {
                     String starID = starsResultSet.getString("id");
                     String name = starsResultSet.getString("name");
 
-                    String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + starID;
+                    String link = "http://" + dotenv.get("HOSTNAME") + ":8080/cs122b_project1_star_example_war_exploded/stars?sid=" + starID;
                     stars += "<a href = " + link + ">" + name + "</a>" + ", ";
                 }
 
