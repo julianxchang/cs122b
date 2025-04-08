@@ -19,8 +19,8 @@ public class StarServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Dotenv dotenv = Dotenv.load();
 
-        String login = "root";
-        String password = dotenv.get("PASSWORD");
+        String login = dotenv.get("DB_USERNAME");
+        String password = dotenv.get("DB_PASSWORD");
         String url = "jdbc:mysql://localhost:3306/moviedb";
 
         response.setContentType("text/html");

@@ -18,8 +18,8 @@ public class MovieListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Dotenv dotenv = Dotenv.load();
 
-        String loginUser = "root";
-        String loginPasswd = dotenv.get("PASSWORD");
+        String loginUser = dotenv.get("DB_USERNAME");
+        String loginPasswd = dotenv.get("DB_PASSWORD");
         String loginUrl = "jdbc:mysql://localhost:3306/moviedb";
 
         // Set response mime type
