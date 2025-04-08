@@ -60,7 +60,7 @@ public class StarServlet extends HttpServlet {
             while (rs.next()) {
                 String movieID = rs.getString("movieID");
                 String title = rs.getString("title");
-                String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/movie?id=" + movieID;
+                String link = "http://" + dotenv.get("HOSTNAME") + ":8080/cs122b_project1_star_example_war_exploded/movie?id=" + movieID;
                 out.print("<a href = " + link + ">" + title + "</a><br>");
             }
         } catch (Exception e) {
