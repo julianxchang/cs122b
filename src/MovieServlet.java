@@ -72,7 +72,9 @@ public class MovieServlet extends HttpServlet {
             while (rs.next()) {
                 String star = rs.getString("name");
                 String sid = rs.getString("starID");
-                String link = "http://" + dotenv.get("HOSTNAME") + "localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + sid;
+                //String link = "http://" + dotenv.get("HOSTNAME") + "localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + sid;
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String link = baseUrl + request.getContextPath() + "/stars?sid=" + sid;
                 out.print("<a href = " + link + ">" + star + "</a><br>");
             }
 
