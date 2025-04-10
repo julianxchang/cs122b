@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import io.github.cdimascio.dotenv.Dotenv;
 
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet("/stars")
@@ -16,8 +17,10 @@ public class StarServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String login = "root";
-        String password = "tsang123";
+        Dotenv dotenv = Dotenv.load();
+
+        String login = dotenv.get("DB_USERNAME");
+        String password = dotenv.get("DB_PASSWORD");
         String url = "jdbc:mysql://localhost:3306/moviedb";
 
         response.setContentType("text/html");
@@ -57,7 +60,9 @@ public class StarServlet extends HttpServlet {
             while (rs.next()) {
                 String movieID = rs.getString("movieID");
                 String title = rs.getString("title");
-                String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/movie?id=" + movieID;
+                //String link = "http://" + dotenv.get("HOSTNAME") + ":8080/cs122b_project1_star_example_war_exploded/movie?id=" + movieID;
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String link = baseUrl + request.getContextPath() + "/movie?id=" + movieID;
                 out.print("<a href = " + link + ">" + title + "</a><br>");
             }
         } catch (Exception e) {
