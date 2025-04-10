@@ -1,96 +1,80 @@
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-// This annotation maps this Java Servlet Class to a URL
-@WebServlet("/movie-list")
+// Declaring a WebServlet called StarsServlet, which maps to url "/api/stars"
+@WebServlet(name = "MovieListServlet", urlPatterns = "/api/movie-list")
 public class MovieListServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
+    // Create a dataSource which registered in web.
+    private DataSource dataSource;
+
+    public void init(ServletConfig config) {
+        try {
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // Change this to your own mysql username and password
-        String loginUser = "root";
-        String loginPasswd = "tsang123";
-        String loginUrl = "jdbc:mysql://localhost:3306/moviedb";
 
-        // Set response mime type
-        response.setContentType("text/html");
+        response.setContentType("application/json"); // Response mime type
 
-        // Get the PrintWriter for writing response
+        // Output stream to STDOUT
         PrintWriter out = response.getWriter();
 
-        out.println("<html>");
-        out.println("<head><title>Fabflix</title></head>");
+        // Get a connection from dataSource and let resource manager close the connection after usage.
+        try (Connection conn = dataSource.getConnection()) {
 
-        try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            // create database connection
-            Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
-            // declare statement
-            Statement statement = connection.createStatement();
-            Statement starsgenresStatement = connection.createStatement();
-            // prepare query
+            // Declare our statement
+            Statement statement = conn.createStatement();
+
+            // connection statement for getting generes and stars
+            Statement starsgenresStatement = conn.createStatement();
+
             String query = "SELECT title, year, director, rating \n" +
                     "FROM movies m, ratings r, genres_in_movies g\n" +
                     "WHERE m.id = g.movieid and m.id = r.movieid\n" +
                     "ORDER BY r.rating DESC\n" +
                     "LIMIT 20";
-            // execute query
-            ResultSet resultSet = statement.executeQuery(query);
+
+            // Perform the query
+            ResultSet rs = statement.executeQuery(query);
+
+            // For storing stars and genres later
             ResultSet starsResultSet;
             ResultSet genresResultSet;
+            JsonArray jsonArray = new JsonArray();
 
-            out.print("<head>");
-            out.print("<style> " +
-                    "   table {" +
-                    "       width: 100%;" +
-                    "       height: 100hv" +
-                    "       border-collapse: collapse;" +
-                    "   }" +
-                    "   tr:nth-child(even) {\n" +
-                    "       background-color: #D6EEEE;\n" +
-                    "   }" +
-                    "   tr {\n" +
-                    "       border-bottom: 1px solid #ddd;\n" +
-                    "   }" +
-                    "</style>");
-            out.print("</head>");
-            out.println("<body>");
-            out.println("<h1>Top 20 Movies</h1>");
+            // Iterate through each row of rs
+            while (rs.next()) {
+                String title = rs.getString("Title");
+                String year = rs.getString("Year");
+                String director = rs.getString("Director");
+                String rating = rs.getString("Rating");
 
-            out.println("<table border>");
-
-            // Add table header row
-            out.println("<tr>");
-            out.println("<td>Title</td>");
-            out.println("<td>Year</td>");
-            out.println("<td>Director</td>");
-            out.println("<td>Genre(s)</td>");
-            out.println("<td>Star(s)</td>");
-            out.println("<td>Rating</td>");
-            out.println("</tr>");
-
-            // Add a row for every movie result
-            while (resultSet.next()) {
-                // get a movie from result set
-                String title = resultSet.getString("Title");
-                String year = resultSet.getString("Year");
-                String director = resultSet.getString("Director");
-                String rating = resultSet.getString("Rating");
-
-//                // get first three genres
+                // get first three genres
                 query = "SELECT name " +
                         "FROM movies m, genres_in_movies gim, genres g " +
                         "WHERE m.title = '" + title + "' AND m.id = gim.movieID AND gim.genreID = g.id " +
                         "LIMIT 3";
-
                 genresResultSet = starsgenresStatement.executeQuery(query);
                 String genres = "";
                 while(genresResultSet.next()) {
@@ -99,7 +83,7 @@ public class MovieListServlet extends HttpServlet {
                 }
                 genres = genres.substring(0, genres.length() - 2);
 
-                // get first three stars
+                //get first three stars
                 query = "SELECT s.id, name " +
                         "FROM movies m, stars_in_movies sim, stars s " +
                         "WHERE m.title = '" + title + "' AND m.id = sim.movieID AND sim.starID = s.id " +
@@ -109,55 +93,53 @@ public class MovieListServlet extends HttpServlet {
 
                 String stars = "";
                 while(starsResultSet.next()) {
-                    String starID = starsResultSet.getString("id");
-                    String name = starsResultSet.getString("name");
+                    //String starID = starsResultSet.getString("id");
+                    //String name = starsResultSet.getString("name");
 
-                    String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + starID;
-                    stars += "<a href = " + link + ">" + name + "</a>" + ", ";
+                    //String link = "http://localhost:8080/cs122b_project1_star_example_war_exploded/stars?sid=" + starID;
+                    //stars += "<a href = " + link + ">" + name + "</a>" + ", ";
+                    stars += starsResultSet.getString("name");
+                    stars += ", ";
                 }
 
                 stars = stars.substring(0, stars.length() - 2);
 
-                out.println("<tr>");
-                out.println("<td>" + title + "</td>");
-                out.println("<td>" + year + "</td>");
-                out.println("<td>" + director + "</td>");
-                out.println("<td>" + genres + "</td>");
-                out.println("<td>" + stars + "</td>");
-                out.println("<td>" + rating + "</td>");
-                out.println("</tr>");
+                // Create a JsonObject based on the data we retrieve from rs
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("movie_title", title);
+                jsonObject.addProperty("movie_year", year);
+                jsonObject.addProperty("movie_director", director);
+                jsonObject.addProperty("movie_genres", genres);
+                jsonObject.addProperty("movie_stars", stars);
+                jsonObject.addProperty("movie_rating", rating);
+
+                jsonArray.add(jsonObject);
             }
-
-            out.println("</table>");
-            out.println("</body>");
-
-            resultSet.close();
+            rs.close();
             statement.close();
-            connection.close();
+
+            // Log to localhost log
+            request.getServletContext().log("getting " + jsonArray.size() + " results");
+
+            // Write JSON string to output
+            out.write(jsonArray.toString());
+            // Set response status to 200 (OK)
+            response.setStatus(200);
 
         } catch (Exception e) {
-            /*
-             * After you deploy the WAR file through tomcat manager webpage,
-             *   there's no console to see the print messages.
-             * Tomcat append all the print messages to the file: tomcat_directory/logs/catalina.out
-             *
-             * To view the last n lines (for example, 100 lines) of messages you can use:
-             *   tail -100 catalina.out
-             * This can help you debug your program after deploying it on AWS.
-             */
-            request.getServletContext().log("Error: ", e);
 
-            out.println("<body>");
-            out.println("<p>");
-            out.println("Exception in doGet: " + e.getMessage());
-            out.println("</p>");
-            out.print("</body>");
+            // Write error message JSON object to output
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("errorMessage", e.getMessage());
+            out.write(jsonObject.toString());
+
+            // Set response status to 500 (Internal Server Error)
+            response.setStatus(500);
+        } finally {
+            out.close();
         }
 
-        out.println("</html>");
-        out.close();
+        // Always remember to close db connection after usage. Here it's done by try-with-resources
 
     }
-
-
 }
